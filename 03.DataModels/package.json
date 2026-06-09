@@ -1,0 +1,21 @@
+{
+  "name": "03.datamodels",
+  "version": "1.0.0",
+  "description": "Database connection",
+  "keywords": [
+    "node",
+    "bits"
+  ],
+  "license": "ISC",
+  "author": "Ayaan Asad",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.6.3"
+  }
+}
