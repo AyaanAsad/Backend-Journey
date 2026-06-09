@@ -1,0 +1,16 @@
+{
+  "name": "04.mainproject",
+  "version": "1.0.0",
+  "description": "Main project to learn backend in a complex way",
+  "keywords": [
+    "javascript",
+    "backend"
+  ],
+  "license": "ISC",
+  "author": "Ayaan Asad",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
