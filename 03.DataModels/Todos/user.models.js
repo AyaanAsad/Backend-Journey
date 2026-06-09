@@ -19,4 +19,4 @@ const userSchema = new mongo.Schema({
 }, {timestamps: true} //gives createdAt and updatedAt by default
 )
 
-export const User = mongo.model("User Model", userSchema)
+export const User = mongo.model("User", userSchema)
