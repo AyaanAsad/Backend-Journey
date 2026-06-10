@@ -7,5 +7,12 @@ dotenv.config({
 })
 import DBConnect from './database/index.js'
 
-console.log("URI:", process.env.MONGO_URI_LOCAL)
-DBConnect()
+DBConnect()//returns a promise
+.then(() => {
+    app.listen(process.env.PORT, () => {
+        console.log(`SERVER STARTED AT PORT ${procedd.env.PORT}`)
+    })
+})
+.catch((err) => {
+    console.log(`MONGODB CONNECTION ERROR: ${err}`)
+})
