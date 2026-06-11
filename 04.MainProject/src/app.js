@@ -32,4 +32,12 @@ app.use(cookieparser())
 //read cookies from incoming requests
 //cookies = tiny notes the browser stores like : 'this user is logged in'
 
+//----------------------------------------------ROUTES IMPORT-----------------------------------------------
+
+import userRouter from './routes/user.routes.js'
+
+//----------------------------------------------ROUTES DECLARE-----------------------------------------------
+
+app.use('/api/v1/users', userRouter)
+
 export {app}
