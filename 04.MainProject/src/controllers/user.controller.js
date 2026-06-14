@@ -1,10 +1,27 @@
-import {asyncHandler} from '../utils/asyncHandler.js'
+import { asyncHandler } from '../utils/asyncHandler.js'
 import { apiError } from '../utils/apiError.js'
 import { User } from '../models/user.models.js'
 import { UploadOnCloud } from '../utils/cloudinary.js'
 import { apiResponse } from '../utils/apiResponse.js'
 
-const registerUser = asyncHandler( async (req,res) => {
+const generateAccessAndRefreshTokens = async (userId) => {
+    try {
+        const user = await User.findById
+        const userAccess = user.GenerateAccessToken()
+        const userRefresh = user.GenerateRefreshToken()
+        user.refreshToken = userRefresh
+        await user.save({validateBeforeSave: false})
+        return {
+            userAccess,
+            userRefresh
+        }
+    } 
+    catch (error) {
+        throw new apiError(501, "Tokens could not be generated")
+    }   
+} 
+
+const registerUser = asyncHandler(async (req, res) => {
 
     //get user details from frontend
     //validateion - not empty
@@ -17,17 +34,17 @@ const registerUser = asyncHandler( async (req,res) => {
     //check for user creates ? Return response : error
 
     //STEP 1
-    const {fullname, email, username, password} = req.body
+    const { fullname, email, username, password } = req.body
 
     //STEP 2
     //console.log(email)
-    if( [fullname,email,username,password].some( (field) => (field.trim() === "")) ){
+    if ([fullname, email, username, password].some((field) => (field.trim() === ""))) {
         throw new apiError(400, "All fields are required")
     }
 
     //STEP 3
     const existingUser = await User.findOne({
-        $or:[ { email },{ username } ]
+        $or: [{ email }, { username }]
     })
     if (existingUser) {
         throw new apiError(409, "User with email or username already exists")
@@ -37,7 +54,7 @@ const registerUser = asyncHandler( async (req,res) => {
     const avatarLocal = req.files?.avatar[0]?.path
     const coverImgLocal = req.files?.covrImg[0]?.path
     if (!avatarLocal) {
-        throw new apiError(400,"Avatar is required")
+        throw new apiError(400, "Avatar is required")
     }
     //console.log("coverLocal:", coverImgLocal)
 
@@ -47,8 +64,8 @@ const registerUser = asyncHandler( async (req,res) => {
     // console.log("BODY:", req.body)
     // console.log("FILES:", req.files)
 
-    if(!avatarImage){
-        throw new apiError(400,"Avatar is required")
+    if (!avatarImage) {
+        throw new apiError(400, "Avatar is required")
     }
 
     //STEP 5
@@ -63,8 +80,8 @@ const registerUser = asyncHandler( async (req,res) => {
     //console.log(user)
 
     //STEP 6
-    const createdUser = await User.findById(user._id)?.select( "-password -refreshToken" )
-    if(!createdUser){
+    const createdUser = await User.findById(user._id)?.select("-password -refreshToken")
+    if (!createdUser) {
         throw new apiError(500, "Something went wrong while entering user into DB")
     }
 
@@ -74,4 +91,42 @@ const registerUser = asyncHandler( async (req,res) => {
     )
 })
 
-export {registerUser}
+const loginUser = asyncHandler(async (req, res) => {
+
+    //accept input from user
+    //validation
+    //call db for user and pass
+    //dehash and decrypt pass
+    //check if input match the db
+    //generate auth and ref tokens if they match
+    //send cookies
+    //send response
+
+    const { username, email, password } = req.body
+
+    if (!username || !email) {
+        throw new apiError(400, "Enter username or email")
+    }
+
+    const user = await User.findOne({ //instance of the userfrom the db, The user we need to check for not the model User
+        $or:[{username},{email}]
+    })
+
+    if(!user){
+        throw new apiError(400, "User not registered")
+    }
+
+    const isPasswordValid = await user.isPasswordValid(password)
+
+    if(!isPasswordValid){
+        throw new apiError(401, "Invalid Password")
+    }
+
+    const {accessToken, refreshToken} = await generateAccessAndRefreshTokens(user._id)
+
+    const loggedInUser = await User.findById(user._id).select(
+        "-password -refreshToken"
+    )
+})
+
+export { registerUser, loginUser }
