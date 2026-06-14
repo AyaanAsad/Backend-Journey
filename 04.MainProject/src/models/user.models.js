@@ -18,20 +18,20 @@ const UserSchema = new mongo.Schema({
         lowercase:true,
         trim:true
     },
-    Fullname:{
+    fullname:{
         type:String,
         required:true,
         trim:true,
         index:true
     },
-    Avatar:{
+    avatar:{
         type:String, //cloudinaru url
         required:true,
     },
-    CoverImg:{
+    coverImg:{
         type:String, //cloudinaryUrl
     },
-    WatchHistory:{
+    watchHistory:{
         type:
         [
             {

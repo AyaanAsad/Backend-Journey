@@ -1,4 +1,4 @@
-class ApiResponse{
+class apiResponse{
     constructor(statusCode, data, message = "Success"){
         this.statusCode = statusCode,
         this.data = data,
@@ -10,3 +10,5 @@ class ApiResponse{
 //📌 data — the actual info you're sending back (like a user's profile)
 //📌 message — a text note. Defaults to "Success" if you don't pass one
 //this.success = statusCode < 400 automatically sets success to true or false based on the status code 
+
+export {apiResponse}
