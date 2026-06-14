@@ -20,13 +20,13 @@ const registerUser = asyncHandler( async (req,res) => {
     const {fullname, email, username, password} = req.body
 
     //STEP 2
-    console.log(email)
+    //console.log(email)
     if( [fullname,email,username,password].some( (field) => (field.trim() === "")) ){
         throw new apiError(400, "All fields are required")
     }
 
     //STEP 3
-    const existingUser = User.findOne({
+    const existingUser = await User.findOne({
         $or:[ { email },{ username } ]
     })
     if (existingUser) {
@@ -39,8 +39,14 @@ const registerUser = asyncHandler( async (req,res) => {
     if (!avatarLocal) {
         throw new apiError(400,"Avatar is required")
     }
+    //console.log("coverLocal:", coverImgLocal)
+
     const avatarImage = await UploadOnCloud(avatarLocal)
     const coverImage = await UploadOnCloud(coverImgLocal)
+    //console.log("coverImage:", coverImage)
+    // console.log("BODY:", req.body)
+    // console.log("FILES:", req.files)
+
     if(!avatarImage){
         throw new apiError(400,"Avatar is required")
     }
@@ -48,13 +54,13 @@ const registerUser = asyncHandler( async (req,res) => {
     //STEP 5
     const user = await User.create({
         fullname,
-        avatarImage: avatar.url,
-        coverImage: coverImage?.url || "",
+        avatar: avatarImage.url,
+        coverImg: coverImage?.url || "",
         email,
         password,
         username: username.toLowerCase()
-
     })
+    //console.log(user)
 
     //STEP 6
     const createdUser = await User.findById(user._id)?.select( "-password -refreshToken" )
