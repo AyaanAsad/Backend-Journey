@@ -6,14 +6,14 @@ import { apiResponse } from '../utils/apiResponse.js'
 
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
-        const user = await User.findById
-        const userAccess = user.GenerateAccessToken()
-        const userRefresh = user.GenerateRefreshToken()
-        user.refreshToken = userRefresh
+        const user = await User.findById(userId)
+        const accessToken = user.GenerateAccessToken()
+        const refreshToken = user.GenerateRefreshToken()
+        user.refreshToken = refreshToken
         await user.save({ validateBeforeSave: false })
         return {
-            userAccess,
-            userRefresh
+            accessToken,
+            refreshToken
         }
     }
     catch (error) {
@@ -104,7 +104,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
     const { username, email, password } = req.body
 
-    if (!username || !email) {
+    if (!username && !email) {
         throw new apiError(400, "Enter username or email")
     }
 
