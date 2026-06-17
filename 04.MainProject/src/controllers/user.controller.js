@@ -4,6 +4,7 @@ import { User } from '../models/user.models.js'
 import { UploadOnCloud } from '../utils/cloudinary.js'
 import { apiResponse } from '../utils/apiResponse.js'
 import jwt from 'jsonwebtoken'
+import { set } from 'mongoose'
 
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
@@ -211,6 +212,82 @@ const refreshAccessToken = asyncHandler( async (req,res) => {
     }
 })
 
+const changeCurrentPassword = asyncHandler( async (req,res) =>{
+    const {oldPassword, newPassword} = req.body
+    const user = await User.findById(req.user?._id)
+    const isPasswordValid = await User.isPasswordValid(oldPassword)
+    if(!isPasswordValid){
+        throw new apiError(400,"Invalid Password")
+    }
+    user.password=newPassword
+    await user.save({validateBeforeSave:false})
 
+    return res.status(200).json(new apiResponse(200,{},"Password changed successfully"))
+})
 
-export { registerUser, loginUser, logoutUser, refreshAccessToken }
+const getCurrentUser = asyncHandler( async (req,res) =>{
+    return res.status(200).json(200,req.user,"User fetched successfully")
+})
+
+const updateDetals = asyncHandler( async (req,res) => {
+    const {fullname, email} = req.body
+    if(!fullname || !email){
+        throw new apiError(400, "All fields required")
+    }
+    const user = User.findByIdAndUpdate((req.user?._id,{
+        $set:{
+            fullname : fullname,
+            email : email
+        }
+    },{new:true})).select("-password")
+
+    res.status(200).json(new apiResponse(200,user,"Account details updated"))
+})
+
+const updateUserAvatar = asyncHandler( async (req,res) =>{
+    const avatarLocal = req.file?.path
+    if(!avatarLocal){
+        throw new apiError(400,"File not found")
+    }
+    const avatar = await UploadOnCloud(avatarLocal)
+    if(!avatar.url){
+        throw new apiError(500,"Could not upload avatar")
+    }
+
+    await User.findByIdAndUpdate(req.user?._id,{
+        $set:{
+            avatar:avatar.url
+        }
+    },{new:true}).select("-password")
+
+    return res.status(200).json(new apiResponse(200,user,"avatar updated"))
+})
+
+const updateUserCoverImage = asyncHandler( async (req,res) =>{
+    const coverImgLocal = req.file?.path
+    if(!coverImgLocal){
+        throw new apiError(400,"File not found")
+    }
+    const coverImg = await UploadOnCloud(coverImgLocal)
+    if(!coverImg.url){
+        throw new apiError(500,"Could not upload avatar")
+    }
+
+    await User.findByIdAndUpdate(req.user?._id,{
+        $set:{
+            coverImg:coverImg.url
+        }
+    },{new:true}).select("-password")
+
+    return res.status(200).json(new apiResponse(200,user,"cover Image updated"))
+})
+
+export { 
+    registerUser, 
+    loginUser, 
+    logoutUser, 
+    refreshAccessToken, 
+    changeCurrentPassword, 
+    getCurrentUser,
+    updateUserAvatar 
+}
