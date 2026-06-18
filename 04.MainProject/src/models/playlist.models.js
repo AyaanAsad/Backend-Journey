@@ -1,6 +1,6 @@
 import mongo from "mongoose";
 
-const playlistSchema = new Schema({
+const playlistSchema = new mongo.Schema({
     name: {
         type: String,
         required: true
