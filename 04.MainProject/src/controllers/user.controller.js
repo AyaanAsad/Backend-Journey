@@ -400,6 +400,9 @@ export {
     refreshAccessToken, 
     changeCurrentPassword, 
     getCurrentUser,
+    updateDetals,
     updateUserAvatar,
-    getWatchHistory 
+    getUserChannelProfile,
+    getWatchHistory,
+    updateUserCoverImage
 }
