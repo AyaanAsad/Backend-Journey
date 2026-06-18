@@ -4,7 +4,7 @@ import { User } from '../models/user.models.js'
 import { UploadOnCloud } from '../utils/cloudinary.js'
 import { apiResponse } from '../utils/apiResponse.js'
 import jwt from 'jsonwebtoken'
-import { set } from 'mongoose'
+import mongo,{ set } from 'mongoose'
 
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
@@ -157,8 +157,8 @@ const logoutUser = asyncHandler( async (req,res) => {
     await User.findByIdAndUpdate(
         req.user._id, 
         {
-            $set:{
-                refreshToken: undefined
+            $unset:{
+                refreshToken: 1
             }
         },
         {
@@ -215,7 +215,7 @@ const refreshAccessToken = asyncHandler( async (req,res) => {
 const changeCurrentPassword = asyncHandler( async (req,res) =>{
     const {oldPassword, newPassword} = req.body
     const user = await User.findById(req.user?._id)
-    const isPasswordValid = await User.isPasswordValid(oldPassword)
+    const isPasswordValid = await user.isPasswordValid(oldPassword)
     if(!isPasswordValid){
         throw new apiError(400,"Invalid Password")
     }
@@ -234,12 +234,12 @@ const updateDetals = asyncHandler( async (req,res) => {
     if(!fullname || !email){
         throw new apiError(400, "All fields required")
     }
-    const user = User.findByIdAndUpdate((req.user?._id,{
+    const user = await User.findByIdAndUpdate(req.user?._id,{
         $set:{
             fullname : fullname,
             email : email
         }
-    },{new:true})).select("-password")
+    },{new:true}).select("-password")
 
     res.status(200).json(new apiResponse(200,user,"Account details updated"))
 })
@@ -254,7 +254,7 @@ const updateUserAvatar = asyncHandler( async (req,res) =>{
         throw new apiError(500,"Could not upload avatar")
     }
 
-    await User.findByIdAndUpdate(req.user?._id,{
+    const user = await User.findByIdAndUpdate(req.user?._id,{
         $set:{
             avatar:avatar.url
         }
@@ -273,7 +273,7 @@ const updateUserCoverImage = asyncHandler( async (req,res) =>{
         throw new apiError(500,"Could not upload avatar")
     }
 
-    await User.findByIdAndUpdate(req.user?._id,{
+    const user = await User.findByIdAndUpdate(req.user?._id,{
         $set:{
             coverImg:coverImg.url
         }
