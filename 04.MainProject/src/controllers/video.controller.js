@@ -69,10 +69,10 @@ const updateVideo = asyncHandler(async (req, res) => {
     }
 
     const currentVideo = await Video.findById(videoId)
-        const videoOwner = currentVideo.owner
-        if(!(videoOwner.equals(req.user._id))){
-            throw new apiError(401,"Cannot edit someone else's videos")
-        }
+    const videoOwner = currentVideo.owner
+    if(!(videoOwner.equals(req.user._id))){
+        throw new apiError(401,"Cannot edit someone else's videos")
+    }
     
 
     const {newTitle, newDescription} = req.body
@@ -103,12 +103,42 @@ const updateVideo = asyncHandler(async (req, res) => {
 })
 
 const deleteVideo = asyncHandler(async (req, res) => {
-    const { videoId } = req.params
     //TODO: delete video
+    const videoId = req.params.videoId
+    if(!videoId){
+        throw new apiError(401,"Please Enter videoId")
+    }
+
+    const currentVideo = await Video.findById(videoId)
+    const videoOwner = currentVideo.owner
+    if(!(videoOwner.equals(req.user._id))){
+        throw new apiError(401,"Cannot edit someone else's videos")
+    }
+
+    await Video.findByIdAndDelete(videoId)
+
+    res.status(200).json(new apiResponse(200,[],"Video deleted successfully"))
 })
 
 const togglePublishStatus = asyncHandler(async (req, res) => {
-    const { videoId } = req.params
+    const videoId = req.params.videoId
+    if(!videoId){
+        throw new apiError(401,"Please Enter videoId")
+    }
+
+    const currentVideo = await Video.findById(videoId)
+    const videoOwner = currentVideo.owner
+    if(!(videoOwner.equals(req.user._id))){
+        throw new apiError(401,"Cannot edit someone else's videos")
+    }
+
+    const updatePublish = await Video.findByIdAndUpdate(videoId,{
+        $set:{
+            isPublished:!currentVideo.isPublished
+        }
+    },{new:true})
+
+    res.status(200).json(new apiResponse(200,"Publish status toggeled"))
 })
 
 export {
