@@ -49,14 +49,57 @@ const publishAVideo = asyncHandler(async (req, res) => {
 })
 
 const getVideoById = asyncHandler(async (req, res) => {
-    const { videoId } = req.params
     //TODO: get video by id
+    const videoId = req.params.videoId
+    if(!videoId){
+        throw new apiError(401,"Please enter Video ID")
+    }
+    const video = await Video.findById(videoId)
+    if(!video){
+        throw new apiError(401,"No video found")
+    }
+    res.status(200).json(new apiResponse(200,video,"Video fetched successfully"))
 })
 
 const updateVideo = asyncHandler(async (req, res) => {
-    const { videoId } = req.params
     //TODO: update video details like title, description, thumbnail
+    const videoId= req.params.videoId
+    if(!videoId){
+        throw new apiError(401,"Please Enter videoId")
+    }
 
+    const currentVideo = await Video.findById(videoId)
+        const videoOwner = currentVideo.owner
+        if(!(videoOwner.equals(req.user._id))){
+            throw new apiError(401,"Cannot edit someone else's videos")
+        }
+    
+
+    const {newTitle, newDescription} = req.body
+    const newThumbnailLocal = req.file?.path
+    if(!newTitle||!newDescription){
+        throw new apiError(401,"Please enter title and description")
+    }
+    if(!newThumbnailLocal){
+        throw new apiError(401,"New Thumbnail not entered")
+    }
+    const thumbnail = await UploadOnCloud(newThumbnailLocal)
+    if(!thumbnail.url){
+        throw new apiError(401,"File could not be uploaded to cloud")
+    }
+    const video = await Video.findByIdAndUpdate(videoId,{
+        $set:{
+            title:newTitle,
+            description:newDescription,
+            thumbnail:thumbnail.url
+        }   
+    },{new:true})
+
+    if(!video){
+        throw new apiError(401,"Please enter valid videoID")
+    }
+
+    res.status(200).json(new apiResponse(200,video,"Parameters Updated"))
 })
 
 const deleteVideo = asyncHandler(async (req, res) => {
