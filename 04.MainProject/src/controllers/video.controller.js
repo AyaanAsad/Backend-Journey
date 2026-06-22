@@ -14,6 +14,7 @@ const getAllVideos = asyncHandler(async (req, res) => {
 
 const publishAVideo = asyncHandler(async (req, res) => {
     // TODO: get video, upload to cloudinary, create video
+    
     const { title, description} = req.body
     if(!title || !description){
         throw new apiError(401,"Title and description is mandatory")
@@ -21,6 +22,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
 
     const videoLocal = req.files?.videoFile[0]?.path
     const thumbnailLocal = req.files?.thumbnail[0]?.path
+    
     if(!videoLocal || !thumbnailLocal){
         throw new apiError(401,"Video or thumbnail not found")
     }
