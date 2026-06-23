@@ -9,6 +9,28 @@ const getVideoComments = asyncHandler(async (req, res) => {
     const {videoId} = req.params
     const {page = 1, limit = 10} = req.query
     
+    const pipeline=[
+        {$match:{video:videoId}},
+        {$lookup:{
+            from:'users',
+            localField:'owner',
+            foreignField:'_id',
+            as:'Owner'
+        }},
+        {$unwind:'$Owner'},
+        {$project:{
+            content:1,
+            'Owner.username':1,
+            'Owner.avatar':1
+        }}
+    ]
+
+    const result = await Comment.aggregatePaginate(
+        Comment.aggregate(pipeline),
+        {page,limit}
+    )
+
+    res.status(200).json(new apiResponse(200,result,"Commenst fecthed"))
 })
 
 const addComment = asyncHandler(async (req, res) => {

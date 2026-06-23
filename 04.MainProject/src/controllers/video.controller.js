@@ -8,8 +8,27 @@ import {UploadOnCloud} from "../utils/cloudinary.js"
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
     //TODO: get all videos based on query, sort, pagination
+    const { page = 1, limit = 10, query, sortBy = 'createdAt', sortType = 'desc', userId } = req.query
+    const matchStage = {}
+    if(userId){
+        matchStage.owner = userId
+    }
+    if(query){
+        matchStage.title = {$regex:query, $options:'i'}
+    }
+
+    const pipeline = [
+        {$match:matchStage},
+        {$sort:{[sortBy]:(sortType === 'asc'?1:-1)}}
+    ]
+
+    const result = await Video.aggregatePaginate(
+        Video.aggregate(pipeline),
+        {page,limit}
+    )
+
+    res.status(200).json(new apiResponse(200,result,"Videos fetched"))
 })
 
 const publishAVideo = asyncHandler(async (req, res) => {
